@@ -1,3 +1,9 @@
+
+# Example command-line usage:
+# restflow -f dwca_geography_cleaner.yaml -t
+#          -i dwca_url='http://ipt.vertnet.org:8080/ipt/archive.do?r=ccber_mammals' 
+#          -i workspace=./wsgeogclean 
+
 imports:
 
 - classpath:/org/restflow/directors.yaml
@@ -8,7 +14,7 @@ components:
 - id: dwca_geography_cleaner
   type: Workflow
   properties:
-    director: !ref DataDrivenDirector
+    director: !ref MTDataDrivenDirector
     nodes:
       - !ref ParameterPortal
       - !ref MakeWorkspace
@@ -16,6 +22,7 @@ components:
       - !ref CountryDownloader
       - !ref ArchiveDownloader
       - !ref DWCAtoTSVWriter
+      - !ref VocabList
     inputs:
       workspace:
           default: 
@@ -96,3 +103,18 @@ components:
       from kurator_dwca.dwca_core_to_tsv import dwca_core_to_tsv
       options = {'workspace': workspace, 'inputfile': workspace + "/" + input_file, 'outputfile': outputfile, 'loglevel': 'DEBUG'}
       dwca_core_to_tsv(options)
+    outflows: 
+      outputfile: occurences_file
+
+- id: VocabList
+  type: PythonActorNode
+  properties:
+    sequences:
+      term: ['continent', 'country', 'countrycode', 'waterBody', 'islandGroup', 'island']
+    actor.step: |
+      filename = term + '_counts.csv'
+    outflows:
+      term: term_to_count
+      filename: count_file_name
+
+
