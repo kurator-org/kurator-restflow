@@ -81,9 +81,8 @@ components:
         from kurator_dwca.downloader import downloader
         options = {'url': url, 'outputfile': outputfile, 'workspace':workspace}
         downloader(options)
-        foo=u'dwca.zip'
     outflows:
-      foo: dwca_archive
+      outputfile: dwca_archive
 
 - id: DWCAtoTSVWriter
   type: PythonActorNode
