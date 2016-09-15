@@ -1,0 +1,99 @@
+imports:
+
+- classpath:/org/restflow/directors.yaml
+- classpath:/org/restflow/python/types.yaml
+
+components:
+
+- id: dwca_geography_cleaner
+  type: Workflow
+  properties:
+    director: !ref MTDataDrivenDirector
+    nodes:
+      - !ref ParameterPortal
+      - !ref MakeWorkspace
+      - !ref GeographyDownloader
+      - !ref CountryDownloader
+      - !ref ArchiveDownloader
+      - !ref DWCAtoTSVWriter
+    inputs:
+      workspace:
+          default: 
+      dwca_url:
+
+- id: ParameterPortal
+  type: InPortal
+  properties:
+    outflows: 
+      dwca_url: url_parameter
+      workspace: workspace_parameter
+      
+- id: MakeWorkspace
+  type: PythonActorNode
+  properties:
+    inflows:
+      workspace: workspace_parameter
+    actor.step: |
+      import uuid
+      import os
+      if workspace == '':
+        workspace ='./workspace_'+str(uuid.uuid1())
+      if not os.path.exists(workspace):
+        os.makedirs(workspace)
+    outflows:
+      workspace: shared_workspace
+
+- id: GeographyDownloader
+  type: PythonActorNode
+  properties:
+    constants:
+      url : 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/dwc_geography.txt'
+      outputfile: dwc_geography.txt
+    inflows:
+      workspace: shared_workspace
+    actor.step: |
+        from kurator_dwca.downloader import downloader
+        options = {'url': url, 'outputfile': outputfile, 'workspace':workspace}
+        downloader(options)
+
+- id: CountryDownloader
+  type: PythonActorNode
+  properties:
+    constants:
+      url : 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/country.txt'
+      outputfile: country.txt
+    inflows:
+      workspace: shared_workspace
+    actor.step: |
+        from kurator_dwca.downloader import downloader
+        options = {'url': url, 'outputfile': outputfile, 'workspace':workspace}
+        downloader(options)
+
+- id: ArchiveDownloader
+  type: PythonActorNode
+  properties:
+    inflows:
+      url: url_parameter
+      workspace: shared_workspace
+    constants:
+      outputfile: dwca.zip
+    actor.step: |
+        from kurator_dwca.downloader import downloader
+        options = {'url': url, 'outputfile': outputfile, 'workspace':workspace}
+        downloader(options)
+        foo=u'dwca.zip'
+    outflows:
+      foo: dwca_archive
+
+- id: DWCAtoTSVWriter
+  type: PythonActorNode
+  properties:
+    inflows:
+      workspace: shared_workspace
+      input_file: dwca_archive
+    constants:
+      outputfile: dwca_extractedoccurrences.txt
+    actor.step: |
+      from kurator_dwca.dwca_core_to_tsv import dwca_core_to_tsv
+      options = {'workspace': workspace, 'inputfile': workspace + "/" + input_file, 'outputfile': outputfile}
+      dwca_core_to_tsv(options)
