@@ -23,6 +23,7 @@ components:
       - !ref ArchiveDownloader
       - !ref DWCAtoTSVWriter
       - !ref VocabList
+      - !ref VocabCountReporter
     inputs:
       workspace:
           default: 
@@ -101,7 +102,7 @@ components:
       outputfile: dwca_extractedoccurrences.txt
     actor.step: |
       from kurator_dwca.dwca_core_to_tsv import dwca_core_to_tsv
-      options = {'workspace': workspace, 'inputfile': workspace + "/" + input_file, 'outputfile': outputfile, 'loglevel': 'DEBUG'}
+      options = {'workspace': workspace, 'inputfile': workspace + "/" + input_file, 'outputfile': outputfile}
       dwca_core_to_tsv(options)
     outflows: 
       outputfile: occurences_file
@@ -117,4 +118,21 @@ components:
       term: term_to_count
       filename: count_file_name
 
+- id: VocabCountReporter
+  type: PythonActorNode
+  properties:
+    inflows:
+      workspace: { 'expression': shared_workspace, 'receiveOnce': true }
+      inputfile: { 'expression': occurences_file, 'receiveOnce': true }
+      termname: term_to_count
+      outputfile: count_file_name
+    constants:
+      format: csv
+    actor.step: |
+      from kurator_dwca.term_value_count_reporter import term_value_count_reporter
+      options = {'termlist': termname, 'workspace': workspace, 'inputfile': workspace + "/" + inputfile, 'outputfile': outputfile, 'loglevel': 'DEBUG'}
+      term_value_count_reporter(options)
+    outflows:
+      outputfile: count_report
+       
 
