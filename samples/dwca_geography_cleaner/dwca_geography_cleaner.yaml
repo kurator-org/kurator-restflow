@@ -24,6 +24,7 @@ components:
       - !ref DWCAtoTSVWriter
       - !ref VocabList
       - !ref VocabCountReporter
+      - !ref GeogReporter
     inputs:
       workspace:
           default: 
@@ -130,9 +131,36 @@ components:
       format: csv
     actor.step: |
       from kurator_dwca.term_value_count_reporter import term_value_count_reporter
-      options = {'termlist': termname, 'workspace': workspace, 'inputfile': workspace + "/" + inputfile, 'outputfile': outputfile, 'loglevel': 'DEBUG'}
+      options = {'termlist': termname, 'workspace': workspace, 'inputfile': workspace + "/" + inputfile, 'outputfile': outputfile}
       term_value_count_reporter(options)
     outflows:
       outputfile: count_report
-       
+
+- id: GeogReporter
+  type: PythonActorNode
+  properties:
+    inflows:
+      workspace: shared_workspace
+      inputfile: occurences_file
+    constants:
+      vocabfile: dwc_geography.txt
+      outputfile: geogrecommendations.txt
+      format: txt
+      key: 'continent|country|countryCode|stateProvince|county|municipality|waterBody|islandGroup|island'
+      separator: '|'
+    actor.step: |
+      from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
+      options = {'workspace': workspace, 
+                 'inputfile': workspace + "/" + inputfile, 
+                 'vocabfile': vocabfile,
+                 'outputfile': outputfile,
+                 'format': format,
+                 'key': key,
+                 'separator': separator,
+                 'loglevel': 'DEBUG'}
+      term_recommendation_reporter(options)
+    outflows:
+      outputfile: geog_report
+      
+    
 
