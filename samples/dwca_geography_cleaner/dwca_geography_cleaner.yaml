@@ -8,7 +8,7 @@ components:
 - id: dwca_geography_cleaner
   type: Workflow
   properties:
-    director: !ref MTDataDrivenDirector
+    director: !ref DataDrivenDirector
     nodes:
       - !ref ParameterPortal
       - !ref MakeWorkspace
@@ -94,5 +94,5 @@ components:
       outputfile: dwca_extractedoccurrences.txt
     actor.step: |
       from kurator_dwca.dwca_core_to_tsv import dwca_core_to_tsv
-      options = {'workspace': workspace, 'inputfile': workspace + "/" + input_file, 'outputfile': outputfile}
+      options = {'workspace': workspace, 'inputfile': workspace + "/" + input_file, 'outputfile': outputfile, 'loglevel': 'DEBUG'}
       dwca_core_to_tsv(options)
