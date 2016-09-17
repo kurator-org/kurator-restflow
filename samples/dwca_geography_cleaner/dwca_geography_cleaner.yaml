@@ -24,7 +24,8 @@ components:
       - !ref DWCAtoTSVWriter
       - !ref VocabList
       - !ref VocabCountReporter
-      # - !ref GeogReporter
+      - !ref GeogReporter
+      - !ref WrapUp
     inputs:
       workspace:
           default: 
@@ -178,6 +179,14 @@ components:
       })
     outflows:
       outputfile: geog_report
-      
-    
+
+- id: WrapUp
+  type: PythonActorNode
+  properties:
+    inflows:
+      workspace: shared_workspace
+      outputfile: geog_report
+    actor.step: |
+      print('### Finished Wrapup ###')
+
 
