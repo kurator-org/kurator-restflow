@@ -20,10 +20,10 @@ RestFlow requires Java version 1.7. To determine the version of java installed o
 
 ### 2. Download the RestFlow standalone jar
 
-RestFlow is distributed as a jar (Java archive) file. Download the jar for the [latest release](https://github.com/kurator-org/kurator-restflow/releases). It will be named something like `kurator-restflow-0.4-SNAPSHOT-jar-with-dependencies.jar`.
+RestFlow is distributed as a jar (Java archive) file. Download the jar for the [latest release](https://github.com/kurator-org/kurator-restflow/releases). It will be named something like `kurator-restflow-1.0b3-SNAPSHOT-jar-with-dependencies.jar`.
 
  
-### 3. Create an alias for RestFlow (optional)
+### 3. Create an alias for running RestFlow
 
 Define an alias for more conveniently running RestFlow at the command line. For example, if you have saved the RestFlow jar to the bin subdirectory of your home directory, the following bash command will create an alias for running RestFlow simply by typing restflow at the command prompt. 
 
