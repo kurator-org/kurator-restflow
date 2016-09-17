@@ -27,7 +27,7 @@ RestFlow is distributed as a jar (Java archive) file. Download the jar for the [
 
 Define an alias for more conveniently running RestFlow at the command line. For example, if you have saved the RestFlow jar to the bin subdirectory of your home directory, the following bash command will create an alias for running RestFlow simply by typing restflow at the command prompt. 
 
-    alias restflow='java -jar ~/bin/kurator-restflow-0.4-SNAPSHOT-jar-with-dependencies.jar'
+    alias restflow='java -jar ~/bin/kurator-restflow-1.0b3-SNAPSHOT-jar-with-dependencies.jar'
 
 Try out the new alias by printing RestFlow help:
 
