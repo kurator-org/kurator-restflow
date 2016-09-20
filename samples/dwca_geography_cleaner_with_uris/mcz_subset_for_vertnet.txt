@@ -1,0 +1,53 @@
+sys	1m48.427s
+$ time restflow -f dwca_geography_cleaner_with_uris.yaml -t -i dwca_url='http://digir.mcz.harvard.edu/ipt/archive.do?r=mcz_subset_for_vertnet' 
+/usr/local/lib/python2.7/site-packages/requests/packages/urllib3/connectionpool.py:838: InsecureRequestWarning: Unverified HTTPS request is being made. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/security.html
+  InsecureRequestWarning)
+downloader.py 2016-09-08T14:00+02:00 options: {'url': 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/country.txt', 'outputfile': 'download.txt'}
+/usr/local/lib/python2.7/site-packages/requests/packages/urllib3/connectionpool.py:838: InsecureRequestWarning: Unverified HTTPS request is being made. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/security.html
+  InsecureRequestWarning)
+downloader.py 2016-09-08T14:00+02:00 options: {'url': 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/dwc_geography.txt', 'outputfile': 'download.txt'}
+downloader.py 2016-09-08T14:00+02:00 options: {'url': 'http://digir.mcz.harvard.edu/ipt/archive.do?r=mcz_subset_for_vertnet', 'outputfile': 'download.zip'}
+DEBUG:root:Log level set to DEBUG
+DEBUG:root:Started term_recommendation_reporter.py 2016-09-08T17:54+02:00
+DEBUG:root:options: {'vocabfile': '/Users/tmcphill/GitRepos/kurator-restflow/samples/dwca_geography_cleaner_with_uris/dwca_geography_cleaner_19Sep2016_215304/scratch/dwca_geography_cleaner.GeogReporter_1/dwc_geography.txt', 'outputfile': 'geog_report.txt', 'format': 'txt', 'loglevel': 'DEBUG', 'separator': '|', 'key': 'continent|country|countryCode|stateProvince|county|municipality|waterBody|islandGroup|island', 'inputfile': '/Users/tmcphill/GitRepos/kurator-restflow/samples/dwca_geography_cleaner_with_uris/dwca_geography_cleaner_19Sep2016_215304/scratch/dwca_geography_cleaner.GeogReporter_1/occurences_file.txt'}
+DEBUG:root:Encoding utf_8 surmised for file /Users/tmcphill/GitRepos/kurator-restflow/samples/dwca_geography_cleaner_with_uris/dwca_geography_cleaner_19Sep2016_215304/scratch/dwca_geography_cleaner.GeogReporter_1/occurences_file.txt,
+DEBUG:root:Encoding utf_8 surmised for file /Users/tmcphill/GitRepos/kurator-restflow/samples/dwca_geography_cleaner_with_uris/dwca_geography_cleaner_19Sep2016_215304/scratch/dwca_geography_cleaner.GeogReporter_1/occurences_file.txt,
+DEBUG:root:Report written to ./geog_report.txt in term_recommendation_report()
+DEBUG:root:Finishing term_recommendation_reporter.py 2016-09-08T17:54+02:00
+***/Users/tmcphill/GitRepos/kurator-restflow/samples/dwca_geography_cleaner_with_uris/dwca_geography_cleaner_19Sep2016_215304/scratch/dwca_geography_cleaner.GeogReporter_1/occurences_file.txt***
+***/Users/tmcphill/GitRepos/kurator-restflow/samples/dwca_geography_cleaner_with_uris/dwca_geography_cleaner_19Sep2016_215304/scratch/dwca_geography_cleaner.GeogReporter_1/dwc_geography.txt***
+Warning:  Run 1 of workflow 'dwca_geography_cleaner' wrapped up with unused data packets:
+1 packet in inflow 'inputfile' on node 'VocabCountReporter' with URI 'file:/dwca/occurences_file.txt'
+*** Node step counts ***
+dwca_geography_cleaner: 1
+dwca_geography_cleaner.ArchiveDownloader: 1
+dwca_geography_cleaner.CountryDownloader: 1
+dwca_geography_cleaner.DWCAtoTSVWriter: 1
+dwca_geography_cleaner.GeogReporter: 1
+dwca_geography_cleaner.GeographyDownloader: 1
+dwca_geography_cleaner.ParameterPortal: 1
+dwca_geography_cleaner.VocabCountReporter: 6
+dwca_geography_cleaner.VocabList: 6
+*** Published resources ***
+file:/counts/continent_counts.csv
+file:/counts/country_counts.csv
+file:/counts/countrycode_counts.csv
+file:/counts/islandGroup_counts.csv
+file:/counts/island_counts.csv
+file:/counts/waterBody_counts.csv
+file:/dwca/dwca.zip
+file:/dwca/occurences_file.txt
+file:/geogrecommendations.txt
+file:/vocab/country.txt
+file:/vocab/dwc_geography.txt
+term_to_count/1: continent
+term_to_count/2: country
+term_to_count/3: countrycode
+term_to_count/4: waterBody
+term_to_count/5: islandGroup
+term_to_count/6: island
+url_parameter: http://digir.mcz.harvard.edu/ipt/archive.do?r=mcz_subset_for_vertnet
+
+real	12m31.315s
+user	27m47.526s
+sys	2m3.609s

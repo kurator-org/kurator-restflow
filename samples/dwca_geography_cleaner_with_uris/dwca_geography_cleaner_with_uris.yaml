@@ -1,0 +1,177 @@
+
+# Example command-line usage:
+# restflow -f dwca_geography_cleaner_with_uris.yaml -t
+#          -i dwca_url='http://ipt.vertnet.org:8080/ipt/archive.do?r=ccber_mammals' 
+#          -i workspace=./wsgeogclean 
+
+imports:
+
+- classpath:/org/restflow/directors.yaml
+- classpath:/org/restflow/python/types.yaml
+
+components:
+
+- id: dwca_geography_cleaner
+  type: Workflow
+  properties:
+    director: !ref MTDataDrivenDirector
+    nodes:
+       - !ref ParameterPortal
+       - !ref GeographyDownloader
+       - !ref CountryDownloader
+       - !ref ArchiveDownloader
+       - !ref DWCAtoTSVWriter
+       - !ref VocabList
+       - !ref VocabCountReporter
+       - !ref GeogReporter
+    inputs:
+      dwca_url:
+
+- id: ParameterPortal
+  type: InPortal
+  properties:
+    outflows: 
+      dwca_url: url_parameter
+
+- id: GeographyDownloader
+  type: PythonActorNode
+  properties:
+    constants:
+      url : 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/dwc_geography.txt'
+      outputfile: download.txt
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.downloader import downloader
+      downloader({ 
+          'url':        url, 
+          'outputfile': outputfile
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:/vocab/dwc_geography.txt
+
+- id: CountryDownloader
+  type: PythonActorNode
+  properties:
+    constants:
+      url : 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/country.txt'
+      outputfile: download.txt
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.downloader import downloader
+      downloader({
+          'url':        url, 
+          'outputfile': outputfile
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:/vocab/country.txt
+
+- id: ArchiveDownloader
+  type: PythonActorNode
+  properties:
+    inflows:
+      url: url_parameter
+    constants:
+      outputfile: download.zip
+    stepsOnce: true
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.downloader import downloader
+      downloader({
+          'url':        url, 
+          'outputfile': outputfile
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:/dwca/dwca.zip
+
+- id: DWCAtoTSVWriter
+  type: PythonActorNode
+  properties:
+    inflows:
+      input_file: file:/dwca/dwca.zip
+    constants:
+      outputfile: dwca_extractedoccurrences.txt
+    stepsOnce: true
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.dwca_core_to_tsv import dwca_core_to_tsv
+      dwca_core_to_tsv({
+          'inputfile':  input_file,
+          'outputfile': outputfile      
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows: 
+      outputfile: file:/dwca/occurences_file.txt
+
+- id: VocabList
+  type: PythonActorNode
+  properties:
+    sequences:
+      term: [continent, country, countrycode, waterBody, islandGroup, island]
+    actor.step: |
+      filename = term + '_counts.csv'
+    outflows:
+      term: term_to_count
+
+- id: VocabCountReporter
+  type: PythonActorNode
+  properties:
+    maxConcurrency: 3
+    ordered: false 
+    inflows:
+      inputfile: { 'expression':  'file:/dwca/occurences_file.txt', 'receiveOnce': true }
+      termname: term_to_count
+    constants:
+      workspace: '.'
+      outputfile: counts.txt
+      format: csv
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.term_value_count_reporter import term_value_count_reporter
+      term_value_count_reporter({
+          'workspace':    workspace, 
+          'termlist':     termname, 
+          'inputfile':    inputfile, 
+          'outputfile':   outputfile 
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:/counts/{termname}_counts.csv
+
+- id: GeogReporter
+  type: PythonActorNode
+  properties:
+    stepsOnce: true
+    inflows:
+      inputfile: file:/dwca/occurences_file.txt
+      vocabfile: file:/vocab/dwc_geography.txt
+    constants:
+      outputfile: geog_report.txt
+      format: txt
+      key: 'continent|country|countryCode|stateProvince|county|municipality|waterBody|islandGroup|island'
+      separator: '|'
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
+      print('***' + inputfile + '***')
+      print('***' + vocabfile + '***')
+      term_recommendation_reporter({
+          'inputfile':  inputfile,
+          'vocabfile':  vocabfile,
+          'outputfile': outputfile,
+          'format':     format,
+          'key':        key,
+          'separator':  separator,
+          'loglevel':   'DEBUG'
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:/geogrecommendations.txt

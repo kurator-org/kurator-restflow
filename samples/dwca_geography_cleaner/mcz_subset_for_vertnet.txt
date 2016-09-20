@@ -1,0 +1,25 @@
+$ time restflow dwca_geography_cleaner.yaml -i workspace=./wsgeogclean_mcz -i dwca_url='http://digir.mcz.harvard.edu/ipt/archive.do?r=mcz_subset_for_vertnet'
+/usr/local/lib/python2.7/site-packages/requests/packages/urllib3/connectionpool.py:838: InsecureRequestWarning: Unverified HTTPS request is being made. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/security.html
+  InsecureRequestWarning)
+downloader.py 2016-09-08T14:00+02:00 options: {'url': 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/country.txt', 'outputfile': 'country.txt', 'workspace': './wsgeogclean_mcz'}
+/usr/local/lib/python2.7/site-packages/requests/packages/urllib3/connectionpool.py:838: InsecureRequestWarning: Unverified HTTPS request is being made. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/security.html
+  InsecureRequestWarning)
+downloader.py 2016-09-08T14:00+02:00 options: {'url': 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/dwc_geography.txt', 'outputfile': 'dwc_geography.txt', 'workspace': './wsgeogclean_mcz'}
+downloader.py 2016-09-08T14:00+02:00 options: {'url': 'http://digir.mcz.harvard.edu/ipt/archive.do?r=mcz_subset_for_vertnet', 'outputfile': 'dwca.zip', 'workspace': './wsgeogclean_mcz'}
+DEBUG:root:Log level set to DEBUG
+DEBUG:root:Started term_recommendation_reporter.py 2016-09-08T17:54+02:00
+DEBUG:root:options: {'vocabfile': 'dwc_geography.txt', 'outputfile': 'geogrecommendations.txt', 'separator': '|', 'key': 'continent|country|countryCode|stateProvince|county|municipality|waterBody|islandGroup|island', 'workspace': './wsgeogclean_mcz', 'format': 'txt', 'loglevel': 'DEBUG', 'inputfile': './wsgeogclean_mcz/dwca_extractedoccurrences.txt'}
+DEBUG:root:Encoding utf_8 surmised for file ./wsgeogclean_mcz/dwca_extractedoccurrences.txt,
+DEBUG:root:Encoding utf_8 surmised for file ./wsgeogclean_mcz/dwca_extractedoccurrences.txt,
+DEBUG:root:Report written to ./wsgeogclean_mcz/geogrecommendations.txt in term_recommendation_report()
+DEBUG:root:Finishing term_recommendation_reporter.py 2016-09-08T17:54+02:00
+### Finished Wrapup ###
+
+Warning:  Run 1 of workflow 'dwca_geography_cleaner' wrapped up with unused data packets:
+1 packet in inflow 'inputfile' on node 'VocabCountReporter' with URI 'occurences_file/1'
+1 packet in inflow 'workspace' on node 'VocabCountReporter' with URI 'shared_workspace/1'
+
+real	17m26.680s
+user	18m22.140s
+sys	0m36.566s
+$ 
