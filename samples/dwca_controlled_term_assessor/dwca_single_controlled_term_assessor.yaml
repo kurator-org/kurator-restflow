@@ -1,0 +1,118 @@
+
+# Example command-line usage:
+# restflow -f dwca_single_controlled_term_assessor.yaml -t
+#          -i dwca_core=occurrences.txt
+
+imports:
+
+- classpath:/org/restflow/directors.yaml
+- classpath:/org/restflow/python/types.yaml
+
+components:
+
+- id: DwCAControlledTermAssessor
+  type: Workflow
+  properties:
+    director: !ref MTDataDrivenDirector
+    nodes:
+      - !ref ParameterPortal
+      - !ref GetAbsolutePathToArchiveCore
+      - !ref CountControlledVocabularyValues
+      #- !ref RecommendVocabularyValues
+    inputs:
+      dwca_core:
+      term:
+
+- id: ParameterPortal
+  type: InPortal
+  properties:
+    outflows: 
+      dwca_core: path_to_dwca_core_file
+      term: dwc_term
+
+- id: GetAbsolutePathToArchiveCore
+  type: PythonActorNode
+  properties:
+    inflows:
+      relative_path: path_to_dwca_core_file
+    actor.step: |
+      absolute_path = os.path.abspath(relative_path)
+    outflows:
+      absolute_path: absolute_path_to_dwca_core_file
+
+- id: CountControlledVocabularyValues
+  type: PythonActorNode
+  properties:
+    inflows:
+      inputfile: absolute_path_to_dwca_core_file
+      term: dwc_term
+    constants:
+      workspace: '.'
+      outputfile: counts.txt
+      format: csv
+    actor.usesStepDirectory: true
+    actor.step: |
+
+      from kurator_dwca.dwca_utils import read_header
+      from kurator_dwca.dwca_utils import clean_header
+      from kurator_dwca.term_value_count_reporter import term_value_count_reporter
+
+      header = read_header(inputfile)
+      cleanheader = clean_header(header)
+
+      if term not in cleanheader:
+          countsfile = None
+          errormessage = None
+      else:
+        term_lowercase = term.lower()
+        results = term_value_count_reporter({
+            'workspace':    workspace, 
+            'termlist':     term, 
+            'inputfile':    inputfile,
+            'outputfile':   outputfile
+        })
+        if results['success']:
+          countsfile = results['outputfile']
+          errormessage = None
+        else:
+          countsfile = None
+          errormessage = results['message']
+
+    actor.outputs:
+      countsfile: {type: File}
+      errormessage: {nullable: true}
+      term_lowercase:
+    outflows:
+      countsfile: file:count_{term_lowercase}.csv
+      errormessage: file:count_reporter_error_for_{term_lowercase}.txt
+
+# - id: RecommendVocabularyValues
+#   type: PythonActorNode
+#   properties:
+#     stepsOnce: true
+#     inflows:
+#       inputfile: file:/dwca/occurences_file.txt
+#       vocabfile: file:/vocab/dwc_geography.txt
+#     constants:
+#       outputfile: geog_report.txt
+#       format: txt
+#       key: 'continent|country|countryCode|stateProvince|county|municipality|waterBody|islandGroup|island'
+#       separator: '|'
+#     actor.usesStepDirectory: true
+#     actor.step: |
+#       from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
+#       print('***' + inputfile + '***')
+#       print('***' + vocabfile + '***')
+#       term_recommendation_reporter({
+#           'inputfile':  inputfile,
+#           'vocabfile':  vocabfile,
+#           'outputfile': outputfile,
+#           'format':     format,
+#           'key':        key,
+#           'separator':  separator,
+#           'loglevel':   'DEBUG'
+#       })
+#     actor.outputs:
+#       outputfile: {type: File}
+#     outflows:
+#       outputfile: file:/geogrecommendations.txt
