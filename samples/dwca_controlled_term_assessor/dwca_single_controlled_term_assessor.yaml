@@ -1,7 +1,9 @@
 
 # Example command-line usage:
-# restflow -f dwca_single_controlled_term_assessor.yaml -t
-#          -i dwca_core=occurrences.txt
+# restflow -f dwca_single_controlled_term_assessor.yaml
+#          -i dwca_core=data/occurrences_file.txt 
+#          -i term=preparations
+
 
 imports:
 
@@ -71,7 +73,7 @@ components:
       else:
         results = term_value_count_reporter({
             'workspace':    workspace, 
-            'termlist':     term, 
+            'termlist':     [term], 
             'inputfile':    inputfile,
             'outputfile':   outputfile
         })
@@ -102,7 +104,6 @@ components:
     actor.step: |
       from kurator_dwca.downloader import downloader
       url = url_template % term_lowercase
-      print 'URL = ' + url
       downloader({ 
           'url':        url, 
           'outputfile': outputfile
@@ -118,12 +119,10 @@ components:
     stepsOnce: true
     inflows:
       term: dwc_term
-      inputfile: file:count_{term_lowercase}.csv
+      countfile: file:count_{term_lowercase}.csv
       vocabfile: file:vocab_{}.txt
     constants:
-      outputfile: recommendations.txt
-      format: txt
-      separator: '|'
+      outfilename: recommendations.txt
     actor.usesStepDirectory: true
     actor.step: |
 
@@ -132,13 +131,10 @@ components:
         from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
 
         results = term_recommendation_reporter({
-          'inputfile':  inputfile,
+          'inputfile':  countfile,
           'vocabfile':  vocabfile,
-          'outputfile': outputfile,
-          'format':     format,
+          'outputfile': outfilename,
           'key':        term,
-          'separator':  separator,
-          'loglevel':   'DEBUG'
         })
 
         if results['success']:
@@ -152,5 +148,5 @@ components:
       recommendation_file: {type: File, nullable: true}
       errormessage: {nullable: true}
     outflows:
-      recommendation_file: recommended_{term_lowercase}.csv
+      recommendation_file: file:recommended_{term_lowercase}.csv
       errormessage: file:recommendation_error_for_{term_lowercase}.txt
