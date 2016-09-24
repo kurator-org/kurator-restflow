@@ -15,30 +15,34 @@ components:
   properties:
     director: !ref MTDataDrivenDirector
     nodes:
-      - !ref ParameterPortal
-      - !ref GetAbsolutePathToArchiveCore
+      - !ref ImportWorkflowParameters
+      - !ref ProcessWorkflowParameters
       - !ref CountControlledVocabularyValues
-      #- !ref RecommendVocabularyValues
+      - !ref DownloadControlledVocabularyFile
+      - !ref RecommendVocabularyValues
     inputs:
       dwca_core:
       term:
 
-- id: ParameterPortal
+- id: ImportWorkflowParameters
   type: InPortal
   properties:
     outflows: 
       dwca_core: path_to_dwca_core_file
       term: dwc_term
 
-- id: GetAbsolutePathToArchiveCore
+- id: ProcessWorkflowParameters
   type: PythonActorNode
   properties:
     inflows:
       relative_path: path_to_dwca_core_file
+      term: dwc_term
     actor.step: |
       absolute_path = os.path.abspath(relative_path)
+      term_lowercase = term.lower()
     outflows:
       absolute_path: absolute_path_to_dwca_core_file
+      term_lowercase: lowercase_term
 
 - id: CountControlledVocabularyValues
   type: PythonActorNode
@@ -46,6 +50,7 @@ components:
     inflows:
       inputfile: absolute_path_to_dwca_core_file
       term: dwc_term
+      term_lowercase: lowercase_term
     constants:
       workspace: '.'
       outputfile: counts.txt
@@ -64,7 +69,6 @@ components:
           countsfile = None
           errormessage = None
       else:
-        term_lowercase = term.lower()
         results = term_value_count_reporter({
             'workspace':    workspace, 
             'termlist':     term, 
@@ -79,40 +83,74 @@ components:
           errormessage = results['message']
 
     actor.outputs:
-      countsfile: {type: File}
+      countsfile: {type: File, nullable: true}
       errormessage: {nullable: true}
       term_lowercase:
     outflows:
       countsfile: file:count_{term_lowercase}.csv
       errormessage: file:count_reporter_error_for_{term_lowercase}.txt
 
-# - id: RecommendVocabularyValues
-#   type: PythonActorNode
-#   properties:
-#     stepsOnce: true
-#     inflows:
-#       inputfile: file:/dwca/occurences_file.txt
-#       vocabfile: file:/vocab/dwc_geography.txt
-#     constants:
-#       outputfile: geog_report.txt
-#       format: txt
-#       key: 'continent|country|countryCode|stateProvince|county|municipality|waterBody|islandGroup|island'
-#       separator: '|'
-#     actor.usesStepDirectory: true
-#     actor.step: |
-#       from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
-#       print('***' + inputfile + '***')
-#       print('***' + vocabfile + '***')
-#       term_recommendation_reporter({
-#           'inputfile':  inputfile,
-#           'vocabfile':  vocabfile,
-#           'outputfile': outputfile,
-#           'format':     format,
-#           'key':        key,
-#           'separator':  separator,
-#           'loglevel':   'DEBUG'
-#       })
-#     actor.outputs:
-#       outputfile: {type: File}
-#     outflows:
-#       outputfile: file:/geogrecommendations.txt
+- id: DownloadControlledVocabularyFile
+  type: PythonActorNode
+  properties:
+    inflows:
+      term_lowercase: lowercase_term
+    constants:
+      url_template : 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/%s.txt'
+      outputfile: vocab.txt
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.downloader import downloader
+      url = url_template % term_lowercase
+      print 'URL = ' + url
+      downloader({ 
+          'url':        url, 
+          'outputfile': outputfile
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:vocab_{term_lowercase}.txt
+
+- id: RecommendVocabularyValues
+  type: PythonActorNode
+  properties:
+    stepsOnce: true
+    inflows:
+      term: dwc_term
+      inputfile: file:count_{term_lowercase}.csv
+      vocabfile: file:vocab_{}.txt
+    constants:
+      outputfile: recommendations.txt
+      format: txt
+      separator: '|'
+    actor.usesStepDirectory: true
+    actor.step: |
+
+        from kurator_dwca.dwca_utils import clean_header
+        from kurator_dwca.dwca_terms import controlledtermlist
+        from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
+
+        results = term_recommendation_reporter({
+          'inputfile':  inputfile,
+          'vocabfile':  vocabfile,
+          'outputfile': outputfile,
+          'format':     format,
+          'key':        term,
+          'separator':  separator,
+          'loglevel':   'DEBUG'
+        })
+
+        if results['success']:
+          recommendation_file = results['outputfile']
+          errormessage = None
+        else:
+          recommendation_file = None
+          errormessage = results['message']
+
+    actor.outputs:
+      recommendation_file: {type: File, nullable: true}
+      errormessage: {nullable: true}
+    outflows:
+      recommendation_file: recommended_{term_lowercase}.csv
+      errormessage: file:recommendation_error_for_{term_lowercase}.txt
