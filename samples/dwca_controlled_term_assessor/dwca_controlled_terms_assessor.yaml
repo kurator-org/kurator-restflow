@@ -133,7 +133,7 @@ components:
 - id: AssessControlledTerm
   type: Node
   properties:
-    actor: !ref DwCAControlledTermAssessor
+    actor: !ref dwca_single_controlled_term_assessor
     nestedUriPrefix: /terms/{term}/
     inflows:
       dwca_core: {expression: path_to_occurrences_file, receiveOnce: true}

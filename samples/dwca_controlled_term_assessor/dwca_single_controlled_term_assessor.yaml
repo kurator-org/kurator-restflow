@@ -12,7 +12,7 @@ imports:
 
 components:
 
-- id: DwCAControlledTermAssessor
+- id: dwca_single_controlled_term_assessor
   type: Workflow
   properties:
     director: !ref MTDataDrivenDirector
