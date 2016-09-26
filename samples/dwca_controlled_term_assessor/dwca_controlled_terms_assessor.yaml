@@ -1,0 +1,140 @@
+
+# Example command-line usage:
+# restflow -f dwca_controlled_terms_assessor.yaml
+#          -i dwca_url='http://ipt.vertnet.org:8080/ipt/archive.do?r=ccber_mammals'
+
+imports:
+
+- classpath:/org/restflow/directors.yaml
+- classpath:/org/restflow/python/types.yaml
+- classpath:/org/restflow/groovy/types.yaml
+- file:dwca_single_controlled_term_assessor.yaml
+
+components:
+
+- id: dwca_controlled_terms_assessor
+  type: Workflow
+  properties:
+    director: !ref MTDataDrivenDirector
+    nodes:
+       - !ref ParameterPortal
+       - !ref ProcessTopWorkflowParameters
+       - !ref DownloadArchive
+       - !ref ExtractArchiveCore
+       - !ref GenerateControlledTerms
+       - !ref AssessControlledTerm
+    inputs:
+      dwca_url:
+      terms:
+        default: 
+
+- id: ParameterPortal
+  type: InPortal
+  properties:
+    outflows: 
+      dwca_url: url_parameter
+      terms: terms_parameter
+
+- id: ProcessTopWorkflowParameters
+  type: GroovyActorNode
+  properties:
+    inflows:
+      terms: terms_parameter
+    actor.step: |
+      System.out.println("Terms parameter: " + terms)
+      List<String> terms_list = new LinkedList();
+      /*if (terms instanceof List) {
+        terms_list = terms;
+        System.out.println("Terms parameter is a list: " + terms_list)
+      } else {
+        System.out.println("Terms parameter is not a list")
+      }*/
+    outflows:
+      terms_list: terms_parameter_as_list
+
+- id: DownloadArchive
+  type: PythonActorNode
+  properties:
+    inflows:
+      url: url_parameter
+    constants:
+      outputfile: archive.zip
+    stepsOnce: true
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.downloader import downloader
+      downloader({
+          'url': url, 
+          'outputfile': outputfile
+      })
+    actor.outputs:
+      outputfile: {type: File}
+    outflows:
+      outputfile: file:/dwca/dwca.zip
+
+- id: ExtractArchiveCore
+  type: PythonActorNode
+  properties:
+    inflows:
+      input_file: file:/dwca/dwca.zip
+    constants:
+      outputfile: dwca_extractedoccurrences.txt
+    stepsOnce: true
+    actor.usesStepDirectory: true
+    actor.step: |
+      from kurator_dwca.dwca_core_to_tsv import dwca_core_to_tsv
+      dwca_core_to_tsv({
+          'inputfile': input_file,
+          'outputfile': outputfile
+      })
+      outputpath = os.path.abspath(outputfile)
+    outflows: 
+      outputfile: file:/dwca/occurences.txt
+      outputpath: path_to_occurrences_file
+
+- id: GenerateControlledTerms
+  type: PythonActorNode
+  properties:
+    actor.usesStepDirectory: true
+    endFlowOnNoOutput: true
+    actor.inputs:
+      provided_terms: { nullable: true, default: }
+    inflows:
+      provided_terms: terms_parameter_as_list
+    actor.initialize: |
+      index = 0
+    actor.step: |
+      disableInput('provided_terms')
+      if provided_terms is not None:
+        terms = provided_terms
+      else:
+        from kurator_dwca.dwca_terms import controlledtermlist
+        terms = controlledtermlist
+      print terms, len(terms), index
+      if index < len(terms):
+        enableOutput('term')
+        term = terms[index]
+        print term
+        index += 1
+      else:
+        term = None
+        print "*** Disabling output term ***"
+        disableOutput('term')
+        print "*** Disabled output term ***"
+    actor.state:
+      index:
+    actor.types:
+      index: Integer
+    actor.outputs:
+      term: {optional: true}
+    outflows:
+      term: controlled_term
+
+- id: AssessControlledTerm
+  type: Node
+  properties:
+    actor: !ref DwCAControlledTermAssessor
+    nestedUriPrefix: /terms/{term}/
+    inflows:
+      dwca_core: {expression: path_to_occurrences_file, receiveOnce: true}
+      term: controlled_term

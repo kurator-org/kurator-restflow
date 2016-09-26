@@ -55,7 +55,7 @@ components:
       term_lowercase: lowercase_term
     constants:
       workspace: '.'
-      outputfile: counts.txt
+      outputfile: counts.csv
       format: csv
     actor.usesStepDirectory: true
     actor.step: |
@@ -72,10 +72,10 @@ components:
           errormessage = None
       else:
         results = term_value_count_reporter({
-            'workspace':    workspace, 
-            'termlist':     [term], 
-            'inputfile':    inputfile,
-            'outputfile':   outputfile
+            'workspace': workspace, 
+            'termlist': [term], 
+            'inputfile': inputfile,
+            'outputfile': outputfile
         })
         if results['success']:
           countsfile = results['outputfile']
@@ -98,7 +98,7 @@ components:
     inflows:
       term_lowercase: lowercase_term
     constants:
-      url_template : 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/%s.txt'
+      url_template: 'https://raw.githubusercontent.com/tucotuco/DwCVocabs/master/kurator/%s.txt'
       outputfile: vocab.txt
     actor.usesStepDirectory: true
     actor.step: |
@@ -117,6 +117,12 @@ components:
   type: PythonActorNode
   properties:
     stepsOnce: true
+    actor.inputs:
+      term:
+      term_lowercase:
+      countfile: {nullable: true}
+      vocabfile:
+      outfilename:
     inflows:
       term: dwc_term
       countfile: file:count_{term_lowercase}.csv
@@ -131,10 +137,10 @@ components:
         from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
 
         results = term_recommendation_reporter({
-          'inputfile':  countfile,
-          'vocabfile':  vocabfile,
+          'inputfile': countfile,
+          'vocabfile': vocabfile,
           'outputfile': outfilename,
-          'key':        term,
+          'key': term,
         })
 
         if results['success']:
