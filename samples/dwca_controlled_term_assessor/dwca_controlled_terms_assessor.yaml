@@ -70,6 +70,9 @@ components:
           'outputfile': outputfile
       })
       outputpath = os.path.abspath(outputfile)
+    actor.outputs:
+      outputfile: {type: File}
+      outputpath:
     outflows: 
       outputfile: file:/dwca/occurences.txt
       outputpath: path_to_occurrences_file
