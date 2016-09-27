@@ -13,7 +13,7 @@ imports:
 components:
 
 - id: dwca_single_controlled_term_assessor
-  type: Workflow
+  type: ParallelWorkflow
   properties:
     director: !ref MTDataDrivenDirector
     nodes:

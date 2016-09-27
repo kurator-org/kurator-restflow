@@ -110,6 +110,7 @@ components:
   type: Node
   properties:
     actor: !ref dwca_single_controlled_term_assessor
+    maxConcurrency: 4
     nestedUriPrefix: /terms/{term}/
     inflows:
       dwca_core: {expression: path_to_occurrences_file, receiveOnce: true}
