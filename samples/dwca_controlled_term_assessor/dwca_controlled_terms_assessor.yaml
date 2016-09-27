@@ -77,7 +77,6 @@ components:
 - id: GenerateControlledTerms
   type: PythonActorNode
   properties:
-    actor.usesStepDirectory: true
     endFlowOnNull: true
     actor.inputs:
       provided_terms: {nullable: true, type: Collection}

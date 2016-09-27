@@ -132,23 +132,30 @@ components:
     actor.usesStepDirectory: true
     actor.step: |
 
-        from kurator_dwca.dwca_utils import clean_header
-        from kurator_dwca.dwca_terms import controlledtermlist
-        from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
+        if countfile is None:
 
-        results = term_recommendation_reporter({
-          'inputfile': countfile,
-          'vocabfile': vocabfile,
-          'outputfile': outfilename,
-          'key': term,
-        })
+            recommendation_file = None
+            errormessage = None
 
-        if results['success']:
-          recommendation_file = results['outputfile']
-          errormessage = None
         else:
-          recommendation_file = None
-          errormessage = results['message']
+
+          from kurator_dwca.dwca_utils import clean_header
+          from kurator_dwca.dwca_terms import controlledtermlist
+          from kurator_dwca.term_recommendation_reporter import term_recommendation_reporter
+
+          results = term_recommendation_reporter({
+            'inputfile': countfile,
+            'vocabfile': vocabfile,
+            'outputfile': outfilename,
+            'key': term,
+          })
+
+          if results['success']:
+            recommendation_file = results['outputfile']
+            errormessage = None
+          else:
+            recommendation_file = None
+            errormessage = results['message']
 
     actor.outputs:
       recommendation_file: {type: File, nullable: true}
