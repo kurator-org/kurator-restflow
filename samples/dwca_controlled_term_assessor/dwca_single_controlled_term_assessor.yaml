@@ -1,9 +1,6 @@
 
 # Example command-line usage:
-# restflow -f dwca_single_controlled_term_assessor.yaml
-#          -i dwca_core=data/occurrences_file.txt 
-#          -i term=preparations
-
+# restflow dwca_single_controlled_term_assessor.yaml -i dwca_core=data/occurrences_file.txt -i term=preparations
 
 imports:
 
@@ -13,7 +10,7 @@ imports:
 components:
 
 - id: dwca_single_controlled_term_assessor
-  type: ParallelWorkflow
+  type: Workflow
   properties:
     director: !ref MTDataDrivenDirector
     nodes:

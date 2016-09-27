@@ -1,7 +1,6 @@
 
 # Example command-line usage:
-# restflow -f dwca_controlled_terms_assessor.yaml
-#          -i dwca_url='http://ipt.vertnet.org:8080/ipt/archive.do?r=ccber_mammals'
+# restflow dwca_controlled_terms_assessor.yaml -w dwca_controlled_terms_assessor -i dwca_url='http://ipt.vertnet.org:8080/ipt/archive.do?r=ccber_mammals' -i terms=[type,taxonomicStatus,preparations]
 
 imports:
 
@@ -110,7 +109,7 @@ components:
   type: Node
   properties:
     actor: !ref dwca_single_controlled_term_assessor
-    maxConcurrency: 4
+    maxConcurrency: 1
     nestedUriPrefix: /terms/{term}/
     inflows:
       dwca_core: {expression: path_to_occurrences_file, receiveOnce: true}
