@@ -18,7 +18,6 @@ components:
     director: !ref MTDataDrivenDirector
     nodes:
        - !ref ParameterPortal
-       - !ref ProcessTopWorkflowParameters
        - !ref DownloadArchive
        - !ref ExtractArchiveCore
        - !ref GenerateControlledTerms
@@ -34,23 +33,6 @@ components:
     outflows: 
       dwca_url: url_parameter
       terms: terms_parameter
-
-- id: ProcessTopWorkflowParameters
-  type: GroovyActorNode
-  properties:
-    inflows:
-      terms: terms_parameter
-    actor.step: |
-      System.out.println("Terms parameter: " + terms)
-      List<String> terms_list = new LinkedList();
-      /*if (terms instanceof List) {
-        terms_list = terms;
-        System.out.println("Terms parameter is a list: " + terms_list)
-      } else {
-        System.out.println("Terms parameter is not a list")
-      }*/
-    outflows:
-      terms_list: terms_parameter_as_list
 
 - id: DownloadArchive
   type: PythonActorNode
@@ -96,13 +78,13 @@ components:
   type: PythonActorNode
   properties:
     actor.usesStepDirectory: true
-    endFlowOnNoOutput: true
+    endFlowOnNull: true
     actor.inputs:
-      provided_terms: { nullable: true, default: }
+      provided_terms: {nullable: true, type: Collection}
     inflows:
-      provided_terms: terms_parameter_as_list
-    actor.initialize: |
-      index = 0
+      provided_terms: terms_parameter
+    actor.state:
+      index: 0
     actor.step: |
       disableInput('provided_terms')
       if provided_terms is not None:
@@ -110,23 +92,15 @@ components:
       else:
         from kurator_dwca.dwca_terms import controlledtermlist
         terms = controlledtermlist
-      print terms, len(terms), index
       if index < len(terms):
-        enableOutput('term')
         term = terms[index]
-        print term
         index += 1
       else:
         term = None
-        print "*** Disabling output term ***"
-        disableOutput('term')
-        print "*** Disabled output term ***"
-    actor.state:
-      index:
     actor.types:
       index: Integer
     actor.outputs:
-      term: {optional: true}
+      term: {nullable: true}
     outflows:
       term: controlled_term
 
